@@ -6,7 +6,7 @@ from scanner_automaton import *
 if __name__ == "__main__":
     automaton = ScannerAutomaton(ignores=" \t")
     automaton.define_state("p","preamble p", "")
-    automaton.define_state("c","preamble cnf", "cnf")
+    automaton.define_keyword("cnf","preamble cnf")
     automaton.define_state("e","Exists", "")
     automaton.define_state("a", "Forall", "")
     automaton.define_numbers("Variable")
