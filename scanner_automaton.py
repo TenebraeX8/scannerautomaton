@@ -78,20 +78,22 @@ class ScannerAutomaton:
         if self.internals.cur == ScannerAutomaton.SCANNER_EOF:
             return ScannerAutomatonToken(self.internals.col, self.internals.line, None, None)
         active_states = [state for state in self.states if state.transition_active(self.internals.cur)]            
-        if len(active_states) > 1:
-            raise NotImplementedError("The programm does currently not support non-deterministic scanners")
         if len(active_states) == 0:
             raise ValueError(f"Unexpected token in line {self.internals.line} column {self.internals.col}: {self.internals.cur}")
         
-        next_state = active_states[0]
-
+        last_states = active_states
         value = self.internals.cur
         self.move_cursor()
-        while next_state.reflection_active(self.internals.cur):
+        while any([state.reflection_active(self.internals.cur) for state in active_states]):
             value += self.internals.cur
             self.move_cursor()
+            last_states = active_states
+            active_states = [state for state in active_states if state.reflection_active(self.internals.cur)]
 
-        return ScannerAutomatonToken(self.internals.col, self.internals.line, next_state.token, value)
+        if len(last_states) > 1:
+            raise ValueError(f"Non-Determinism detected! Input {value} ends in states {','.join([x.token for x in last_states])}")
+
+        return ScannerAutomatonToken(self.internals.col, self.internals.line, last_states[0].token, value)
 
     
 if __name__ == "__main__":
@@ -116,3 +118,14 @@ if __name__ == "__main__":
     while token.token is not None:
         print(token)
         token = automaton.next_token()
+
+    #Non Determinism:
+    automaton = ScannerAutomaton(ignores=" ")
+    automaton.define_state("a", "abc", "abc")
+    automaton.define_state("a", "abx", "abx")
+    automaton.input("abc abcc abbbc abxb accbc aaxbb")
+    token = automaton.next_token()
+    while token.token is not None:
+        print(token)
+        token = automaton.next_token()
+
