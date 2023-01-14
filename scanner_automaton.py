@@ -35,9 +35,6 @@ class ScannerAutomatonState:
     def transition(self):
         pass
 
-    def finial_state(self):
-        return True
-
 #Only allows a special sequence 
 class ScannerAutomationKeywordState(ScannerAutomatonState):
     def __init__(self, keyword, token):
@@ -149,8 +146,6 @@ class ScannerAutomaton:
             [state.transition() for state in active_states if not state.reflection_active(self.internals.cur)]
             active_states = [state for state in active_states if state.reflection_active(self.internals.cur)]
 
-        #print(value)
-        #print([state.keyword for state in last_states if isinstance(state, ScannerAutomationKeywordState)])
         last_states = [state for state in last_states if not isinstance(state, ScannerAutomationKeywordState) or value == state.keyword]
 
         if len(last_states) > 1:
